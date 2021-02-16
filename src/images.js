@@ -1,5 +1,3 @@
-const GoogleImages = require('google-images');
-
 export default class Images {
     images = []
     cursor = -1
@@ -9,21 +7,13 @@ export default class Images {
     pageSize = 30
     numQueries = 0
     lastRecord = 0
-    currentClient = 0
-
-    constructor() {
-        this.clients = [
-            new GoogleImages("cse", "key"),
-            new GoogleImages("cse", "key"),
-        ]
-    }
 
     NewSearch = (search, callback, errorCallback) => {
         this.errorCallback = errorCallback
         this.images = []
         this.numQueries = 0
         this.cursor = -1
-        this.currentClient = 0
+        fetch('/images/new_search')
         if (this.search !== search) {
             this.search = search
             this.lastRecord = 0
@@ -66,7 +56,7 @@ export default class Images {
             callback()
             return
         }
-        this.clients[this.currentClient].search(this.search || "clock", { page }).then(result => {
+        fetch(`/images/${this.search || "clock"}/${page}`).then(response => response.json()).then(result => {
             this.lastRecord += result.length
             this.addImages(result, page)
             if (this.images.length > to || result.length === 0) {
@@ -75,15 +65,8 @@ export default class Images {
                 this.load(this.images.length, to, callback)
             }
         }).catch((reason) => {
-            console.error(`failed fetching. current client: ${this.currentClient}`, reason)
-            this.currentClient += 1;
-            if (this.currentClient === this.clients.length) {
-                this.currentClient = 0;
-                console.error("no more clients left")
-                this.errorCallback();
-                return;
-            }
-            this.load(from, to, callback);
+            console.error(`failed fetching.`, reason)
+            this.errorCallback();
         })
     }
 
