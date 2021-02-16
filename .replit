@@ -1,2 +1,2 @@
 language = "javascript"
-run = "npm run all"
+run = "npm install && npm run all"
